@@ -1,4 +1,3 @@
-// Global state
 let currentUser = null;
 let allUsers = []; // Will be loaded from localStorage with json export option
 let allTasks = []; // Will be loaded from localStorage with json export option
@@ -21,22 +20,18 @@ const myTasksNav = document.getElementById('my-tasks-nav');
 const allTasksNav = document.getElementById('all-tasks-nav');
 const filterTasksNav = document.getElementById('filter-tasks-nav');
 
-// View sections
 const userTasksSection = document.getElementById('user-tasks');
 const allTasksSection = document.getElementById('all-tasks');
 const categoryTasksSection = document.getElementById('category-tasks');
 
-// Modal elements
 const taskModal = document.getElementById('task-modal');
 const closeModal = document.getElementById('close-modal');
 const reassignForm = document.getElementById('reassign-form');
 const reassignTaskDescription = document.getElementById('reassign-task-description');
 const reassignTaskId = document.getElementById('reassign-task-id');
 
-// Update polling interval (in ms)
 const UPDATE_INTERVAL = 3000;
 
-// Initialize the application
 document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
@@ -52,8 +47,6 @@ async function init() {
         // Then set up event listeners
         setupEventListeners();
 
-        // Finally check if user is already logged in
-        // This must happen after users are loaded
         await checkLoggedInUser();
 
         console.log('Initialization complete');
@@ -64,10 +57,8 @@ async function init() {
 }
 
 function setupEventListeners() {
-    // Login form submission
     document.querySelector('#login-form form').addEventListener('submit', handleLogin);
 
-    // Task form submission
     taskForm.addEventListener('submit', handleAddTask);
 
     // Navigation clicks
@@ -75,21 +66,17 @@ function setupEventListeners() {
     allTasksNav.addEventListener('click', () => showPage('all-tasks'));
     filterTasksNav.addEventListener('click', () => showPage('filter-tasks'));
 
-    // Category filter submission
     categoryFilter.addEventListener('submit', handleCategoryFilter);
 
-    // Modal events
     closeModal.addEventListener('click', () => taskModal.classList.add('hidden'));
     reassignForm.addEventListener('submit', handleReassignTask);
 
-    // Close modal when clicking outside
     window.addEventListener('click', (e) => {
         if (e.target === taskModal) {
             taskModal.classList.add('hidden');
         }
     });
 
-    // Logout button
     logoutButton.addEventListener('click', handleLogout);
 }
 
@@ -100,7 +87,6 @@ async function loadUsersFromStorage() {
         if (usersData) {
             try {
                 allUsers = JSON.parse(usersData);
-                // Ensure we always have an array
                 if (!Array.isArray(allUsers)) {
                     console.error('Loaded users is not an array, resetting to empty array');
                     allUsers = [];
@@ -111,7 +97,6 @@ async function loadUsersFromStorage() {
                 allUsers = [];
             }
         } else {
-            // Initialize with empty array if no data exists
             allUsers = [];
             console.log('No users found in localStorage, initialized with empty array');
         }
@@ -125,7 +110,6 @@ async function loadTasksFromStorage() {
         if (tasksData) {
             try {
                 allTasks = JSON.parse(tasksData);
-                // Ensure we always have an array
                 if (!Array.isArray(allTasks)) {
                     console.error('Loaded tasks is not an array, resetting to empty array');
                     allTasks = [];
@@ -136,7 +120,6 @@ async function loadTasksFromStorage() {
                 allTasks = [];
             }
         } else {
-            // Initialize with empty array if no data exists
             allTasks = [];
             console.log('No tasks found in localStorage, initialized with empty array');
         }
@@ -147,14 +130,12 @@ async function loadTasksFromStorage() {
 async function saveUsersToStorage() {
     return new Promise((resolve, reject) => {
         try {
-            // Ensure we're saving an array
             const dataToSave = Array.isArray(allUsers) ? allUsers : [];
             localStorage.setItem('users', JSON.stringify(dataToSave));
             console.log('Users saved to localStorage:', dataToSave);
 
-            // Broadcast the change for real-time collaboration
             if (collaborationChannel) {
-                collaborationChannel.postMessage({ type: 'USER_ADDED' });
+                collaborationChannel.postMessage({type: 'USER_ADDED'});
             }
 
             resolve(true);
@@ -168,14 +149,12 @@ async function saveUsersToStorage() {
 async function saveTasksToStorage() {
     return new Promise((resolve, reject) => {
         try {
-            // Ensure we're saving an array
             const dataToSave = Array.isArray(allTasks) ? allTasks : [];
             localStorage.setItem('tasks', JSON.stringify(dataToSave));
             console.log('Tasks saved to localStorage:', dataToSave);
 
-            // Broadcast the change for real-time collaboration
             if (collaborationChannel) {
-                collaborationChannel.postMessage({ type: 'TASK_UPDATED' });
+                collaborationChannel.postMessage({type: 'TASK_UPDATED'});
             }
 
             resolve(true);
@@ -186,7 +165,6 @@ async function saveTasksToStorage() {
     });
 }
 
-// Check if user is already logged in
 async function checkLoggedInUser() {
     const loggedInUserData = localStorage.getItem('currentUser');
     console.log('Checking for logged in user, found data:', loggedInUserData);
@@ -196,17 +174,14 @@ async function checkLoggedInUser() {
             const userData = JSON.parse(loggedInUserData);
             console.log('Parsed user data:', userData);
 
-            // Verify the user exists in our users array
             const user = allUsers.find(u => u.username === userData.username);
             console.log('User found in allUsers:', user);
 
             if (user) {
-                // User found, log them in
                 await loginUser(user);
                 console.log('User automatically logged in');
                 return true;
             } else {
-                // User not found, clear the stored data
                 console.error('User not found in users array, clearing stored data');
                 localStorage.removeItem('currentUser');
             }
@@ -220,34 +195,28 @@ async function checkLoggedInUser() {
     return false;
 }
 
-// Logout function
 async function handleLogout(e) {
-    // Prevent default if it's an event
     if (e) e.preventDefault();
 
     console.log('Logging out user:', currentUser);
 
-    // Clear the current user
     currentUser = null;
 
     // Remove from localStorage
     localStorage.removeItem('currentUser');
     console.log('Removed user data from localStorage');
 
-    // Show login form and hide task app
     loginForm.classList.remove('hidden');
     taskApp.classList.add('hidden');
 
-    // Broadcast logout event
     if (collaborationChannel) {
-        collaborationChannel.postMessage({ type: 'USER_LOGGED_OUT' });
+        collaborationChannel.postMessage({type: 'USER_LOGGED_OUT'});
         console.log('Broadcast logout event');
     }
 
     showNotification('You have been logged out', 'success');
 }
 
-// JSON Import/Export Functions
 function exportUsersToJSON() {
     const jsonData = JSON.stringify(allUsers, null, 2);
     downloadJSONFile('users.json', jsonData);
@@ -265,14 +234,13 @@ async function importUsersFromJSON(e) {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = async function(event) {
+    reader.onload = async function (event) {
         try {
             const importedUsers = JSON.parse(event.target.result);
             if (Array.isArray(importedUsers)) {
                 allUsers = importedUsers;
                 await saveUsersToStorage();
                 showNotification('Users imported successfully', 'success');
-                // Reset the file input
                 e.target.value = '';
             } else {
                 showNotification('Invalid users data format', 'error');
@@ -290,7 +258,7 @@ async function importTasksFromJSON(e) {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = async function(event) {
+    reader.onload = async function (event) {
         try {
             const importedTasks = JSON.parse(event.target.result);
             if (Array.isArray(importedTasks)) {
@@ -298,7 +266,6 @@ async function importTasksFromJSON(e) {
                 await saveTasksToStorage();
                 refreshCurrentView();
                 showNotification('Tasks imported successfully', 'success');
-                // Reset the file input
                 e.target.value = '';
             } else {
                 showNotification('Invalid tasks data format', 'error');
@@ -312,24 +279,18 @@ async function importTasksFromJSON(e) {
 }
 
 function downloadJSONFile(filename, data) {
-    // Create a blob
     const blob = new Blob([data], {type: 'application/json'});
 
-    // Create URL for the blob
     const url = URL.createObjectURL(blob);
 
-    // Create a download link
     const a = document.createElement('a');
     a.href = url;
     a.download = filename;
 
-    // Append to the body
     document.body.appendChild(a);
 
-    // Trigger the download
     a.click();
 
-    // Clean up
     setTimeout(() => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
@@ -338,7 +299,6 @@ function downloadJSONFile(filename, data) {
     return true;
 }
 
-// Event handlers
 async function handleLogin(e) {
     e.preventDefault();
     const usernameInput = document.getElementById('username-input');
@@ -354,14 +314,12 @@ async function handleLogin(e) {
     if (user) {
         await loginUser(user);
     } else {
-        // Create a new user if not found
         const newUser = {
             username,
             displayName: username.charAt(0).toUpperCase() + username.slice(1) // Simple capitalization
         };
         allUsers.push(newUser);
 
-        // Save the updated users array
         try {
             await saveUsersToStorage();
             await loginUser(newUser);
@@ -393,20 +351,16 @@ async function handleAddTask(e) {
         updatedAt: new Date().toISOString()
     };
 
-    // Add the new task to the allTasks array
     allTasks.push(newTask);
 
     // Save the updated tasks array
     try {
         await saveTasksToStorage();
 
-        // Reset the form
         taskForm.reset();
 
-        // Refresh the current view
         refreshCurrentView();
 
-        // Show success notification
         showNotification('Task added successfully', 'success');
     } catch (error) {
         showNotification('Failed to save task', 'error');
@@ -417,7 +371,6 @@ async function handleCompleteTask(taskId) {
     const taskIndex = allTasks.findIndex(task => task.id === taskId);
 
     if (taskIndex !== -1) {
-        // Update the task status
         allTasks[taskIndex].status = 'completed';
         allTasks[taskIndex].updatedAt = new Date().toISOString();
 
@@ -425,10 +378,8 @@ async function handleCompleteTask(taskId) {
         try {
             await saveTasksToStorage();
 
-            // Refresh the current view
             refreshCurrentView();
 
-            // Show success notification
             showNotification('Task marked as completed', 'success');
         } catch (error) {
             showNotification('Failed to update task', 'error');
@@ -440,7 +391,6 @@ async function handleReopenTask(taskId) {
     const taskIndex = allTasks.findIndex(task => task.id === taskId);
 
     if (taskIndex !== -1) {
-        // Update the task status
         allTasks[taskIndex].status = 'pending';
         allTasks[taskIndex].updatedAt = new Date().toISOString();
 
@@ -448,10 +398,8 @@ async function handleReopenTask(taskId) {
         try {
             await saveTasksToStorage();
 
-            // Refresh the current view
             refreshCurrentView();
 
-            // Show success notification
             showNotification('Task reopened', 'success');
         } catch (error) {
             showNotification('Failed to update task', 'error');
@@ -460,23 +408,18 @@ async function handleReopenTask(taskId) {
 }
 
 async function handleDeleteTask(taskId) {
-    // Find the index of the task to delete
     const taskIndex = allTasks.findIndex(task => task.id === taskId);
 
     if (taskIndex !== -1) {
-        // Confirm before deleting
         if (confirm('Are you sure you want to delete this task?')) {
-            // Remove the task from the array
             allTasks.splice(taskIndex, 1);
 
             // Save the updated tasks array
             try {
                 await saveTasksToStorage();
 
-                // Refresh the current view
                 refreshCurrentView();
 
-                // Show success notification
                 showNotification('Task deleted', 'success');
             } catch (error) {
                 showNotification('Failed to delete task', 'error');
@@ -489,11 +432,9 @@ function handleOpenReassignModal(taskId) {
     const task = allTasks.find(task => task.id === taskId);
 
     if (task) {
-        // Set the task information in the modal
         reassignTaskDescription.textContent = task.description;
         reassignTaskId.value = task.id;
 
-        // Show the modal
         taskModal.classList.remove('hidden');
     }
 }
@@ -509,18 +450,15 @@ async function handleReassignTask(e) {
         return;
     }
 
-    // Check if the user exists
     const userExists = allUsers.some(user => user.username === newAssignee);
 
     if (!userExists) {
-        // Add new user if not found
         const newUser = {
             username: newAssignee,
             displayName: newAssignee.charAt(0).toUpperCase() + newAssignee.slice(1)
         };
         allUsers.push(newUser);
 
-        // Save the updated users array
         try {
             await saveUsersToStorage();
         } catch (error) {
@@ -529,11 +467,9 @@ async function handleReassignTask(e) {
         }
     }
 
-    // Find the task to update
     const taskIndex = allTasks.findIndex(task => task.id === taskId);
 
     if (taskIndex !== -1) {
-        // Update the task assignee
         allTasks[taskIndex].assignee = newAssignee;
         allTasks[taskIndex].updatedAt = new Date().toISOString();
 
@@ -541,16 +477,12 @@ async function handleReassignTask(e) {
         try {
             await saveTasksToStorage();
 
-            // Hide the modal
             taskModal.classList.add('hidden');
 
-            // Reset the form
             reassignForm.reset();
 
-            // Refresh the current view
             refreshCurrentView();
 
-            // Show success notification
             showNotification(`Task reassigned to ${newAssignee}`, 'success');
         } catch (error) {
             showNotification('Failed to reassign task', 'error');
@@ -568,7 +500,6 @@ function handleCategoryFilter(e) {
         return;
     }
 
-    // Set the category name in the display
     categoryNameDisplay.textContent = categoryName;
 
     // Filter tasks by the selected category
@@ -580,22 +511,17 @@ function handleCategoryFilter(e) {
     renderTaskList(categoryTasksList, categoryTasks);
 }
 
-// View functions
 function showPage(page) {
-    // Update active page
     activePage = page;
 
-    // Hide all sections
     userTasksSection.classList.add('hidden');
     allTasksSection.classList.add('hidden');
     categoryTasksSection.classList.add('hidden');
 
-    // Remove active class from all nav items
     myTasksNav.classList.remove('active');
     allTasksNav.classList.remove('active');
     filterTasksNav.classList.remove('active');
 
-    // Show the selected section and update nav active state
     if (page === 'my-tasks') {
         userTasksSection.classList.remove('hidden');
         myTasksNav.classList.add('active');
@@ -634,7 +560,6 @@ function renderUserTasks() {
 }
 
 function renderAllTasks() {
-    // Make sure allTasks is an array before sending to renderTaskList
     if (!Array.isArray(allTasks)) {
         console.error('allTasks is not an array:', allTasks);
         allTasks = [];
@@ -645,7 +570,6 @@ function renderAllTasks() {
 }
 
 function renderTaskList(container, tasks) {
-    // Clear the container
     container.innerHTML = '';
 
     // Ensure tasks is an array
@@ -663,15 +587,12 @@ function renderTaskList(container, tasks) {
 
     // Sort tasks: pending first, then by creation date (newest first)
     const sortedTasks = [...tasks].sort((a, b) => {
-        // Sort by status (pending first)
         if (a.status === 'pending' && b.status === 'completed') return -1;
         if (a.status === 'completed' && b.status === 'pending') return 1;
 
-        // Then sort by creation date (newest first)
         return new Date(b.createdAt) - new Date(a.createdAt);
     });
 
-    // Create and append task elements
     sortedTasks.forEach(task => {
         const taskElement = createTaskElement(task);
         container.appendChild(taskElement);
@@ -683,11 +604,9 @@ function createTaskElement(task) {
     taskItem.className = `task-item ${task.status === 'completed' ? 'completed' : ''}`;
     taskItem.dataset.id = task.id;
 
-    // Find the creator and assignee display names
     const creator = allUsers.find(user => user.username === task.createdBy);
     const assignee = allUsers.find(user => user.username === task.assignee);
 
-    // Format dates
     const createdDate = new Date(task.createdAt);
     const updatedDate = new Date(task.updatedAt);
 
@@ -709,8 +628,8 @@ function createTaskElement(task) {
         </div>
         <div class="task-actions">
             ${task.status === 'pending'
-                ? `<button class="btn btn-success complete-task">Complete</button>`
-                : `<button class="btn btn-secondary reopen-task">Reopen</button>`}
+        ? `<button class="btn btn-success complete-task">Complete</button>`
+        : `<button class="btn btn-secondary reopen-task">Reopen</button>`}
             <button class="btn btn-primary reassign-task">Reassign</button>
             <button class="btn btn-danger delete-task">Delete</button>
         </div>
@@ -741,66 +660,56 @@ function createTaskElement(task) {
     return taskItem;
 }
 
-// Helper functions
 async function loginUser(user) {
     currentUser = user;
 
     // Save current user to localStorage for persistence
     localStorage.setItem('currentUser', JSON.stringify(user));
 
-    // Hide login form and show task app
     loginForm.classList.add('hidden');
     taskApp.classList.remove('hidden');
 
     // Show the user tasks by default
     showPage('my-tasks');
 
-    // Start real-time updates
     startRealTimeUpdates();
 }
 
 function getNextTaskId() {
-    // Find the highest task ID and increment by 1
     const maxId = allTasks.reduce((max, task) => (task.id > max ? task.id : max), 0);
     return maxId + 1;
 }
 
 function formatDate(date) {
-    // Check if it's today
     const today = new Date();
     const isToday = date.getDate() === today.getDate() &&
-                    date.getMonth() === today.getMonth() &&
-                    date.getFullYear() === today.getFullYear();
+        date.getMonth() === today.getMonth() &&
+        date.getFullYear() === today.getFullYear();
 
     if (isToday) {
         return `Today at ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
     }
 
-    // Check if it's yesterday
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
     const isYesterday = date.getDate() === yesterday.getDate() &&
-                        date.getMonth() === yesterday.getMonth() &&
-                        date.getFullYear() === yesterday.getFullYear();
+        date.getMonth() === yesterday.getMonth() &&
+        date.getFullYear() === yesterday.getFullYear();
 
     if (isYesterday) {
         return `Yesterday at ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
     }
 
-    // Otherwise, return full date
     return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()} at ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
 }
 
 function showNotification(message, type = 'success') {
-    // Create notification element
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.textContent = message;
 
-    // Add to the DOM
     document.body.appendChild(notification);
 
-    // Remove after 3 seconds
     setTimeout(() => {
         notification.classList.add('fade-out');
         setTimeout(() => {
@@ -811,7 +720,6 @@ function showNotification(message, type = 'success') {
 
 // Real-time updates (polling localStorage for changes)
 function startRealTimeUpdates() {
-    // Poll for changes periodically
     setInterval(() => {
         checkForUpdates();
     }, UPDATE_INTERVAL);
@@ -826,7 +734,6 @@ async function checkForUpdates() {
         try {
             const updatedTasks = JSON.parse(storedTasksData);
 
-            // Make sure we have an array
             if (!Array.isArray(updatedTasks)) {
                 console.warn('Retrieved tasks data is not an array:', updatedTasks);
                 return;
@@ -839,7 +746,6 @@ async function checkForUpdates() {
                 // Update the local tasks array
                 allTasks = updatedTasks;
 
-                // Refresh the current view
                 refreshCurrentView();
             }
         } catch (error) {
@@ -851,17 +757,14 @@ async function checkForUpdates() {
         try {
             const updatedUsers = JSON.parse(storedUsersData);
 
-            // Make sure we have an array
             if (!Array.isArray(updatedUsers)) {
                 console.warn('Retrieved users data is not an array:', updatedUsers);
                 return;
             }
 
-            // Check if there are any changes in users
             if (JSON.stringify(updatedUsers) !== JSON.stringify(allUsers)) {
                 console.log('Users updated from localStorage');
 
-                // Update the local users array
                 allUsers = updatedUsers;
             }
         } catch (error) {
@@ -870,16 +773,12 @@ async function checkForUpdates() {
     }
 }
 
-// Collaboration support with BroadcastChannel API
-// This allows multiple tabs/windows to communicate
 function setupCollaborationSupport() {
     try {
         console.log("Setting up collaboration channel...");
 
-        // Create a new channel for collaboration
         const collaborationChannel = new BroadcastChannel('todo-collaboration');
 
-        // Listen for messages from other instances
         collaborationChannel.onmessage = (event) => {
             console.log("Received collaboration message:", event.data);
 
@@ -888,7 +787,7 @@ function setupCollaborationSupport() {
                 return;
             }
 
-            const { type, data } = event.data;
+            const {type, data} = event.data;
 
             switch (type) {
                 case 'TASK_ADDED':
@@ -902,10 +801,8 @@ function setupCollaborationSupport() {
                     loadUsersFromStorage();
                     loadTasksFromStorage();
 
-                    // Refresh the current view
                     refreshCurrentView();
 
-                    // Show a notification if appropriate
                     if (type === 'TASK_ADDED' && data && data.assignee === currentUser?.username) {
                         showNotification('A new task has been assigned to you', 'success');
                     }
@@ -918,7 +815,6 @@ function setupCollaborationSupport() {
 
         console.log("Collaboration channel set up successfully");
 
-        // Return the channel for sending messages
         return collaborationChannel;
     } catch (error) {
         console.error("Error setting up collaboration channel:", error);
@@ -926,21 +822,19 @@ function setupCollaborationSupport() {
     }
 }
 
-// Initialize the collaboration channel
 let collaborationChannel;
 try {
     collaborationChannel = setupCollaborationSupport();
 } catch (error) {
     console.error('Error setting up collaboration support:', error);
-    // Provide a dummy channel that does nothing
     collaborationChannel = {
-        postMessage: () => {}
+        postMessage: () => {
+        }
     };
 }
 
-// Modify the save functions to broadcast changes
 function broadcastTaskChange(type, data = null) {
     if (collaborationChannel) {
-        collaborationChannel.postMessage({ type, data });
+        collaborationChannel.postMessage({type, data});
     }
 }
