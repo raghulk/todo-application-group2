@@ -1,4 +1,5 @@
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 public class UserSession implements Runnable {
     private final String username;
