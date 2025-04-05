@@ -224,6 +224,8 @@ public class CollaborativeTodoApp {
     private static void filterTasksByCategory() {
         ConsoleUtils.printHeader("Filter Tasks by Category");
 
+        displayCategories(manager.getAllCategoriesFromTasks());
+
         String category = ConsoleUtils.readRequiredInput(scanner, "Enter category to filter: ");
 
         List<Task> filteredTasks = manager.filterTasksByCategory(category);
@@ -337,5 +339,11 @@ public class CollaborativeTodoApp {
 
             System.out.println(statusColor + task + "\u001B[0m");
         }
+    }
+
+    private static void displayCategories(Set<String> categories) {
+        ConsoleUtils.printHeader("Categories to choose from:" + " (" + categories.size() + " categories)");
+
+        categories.forEach(System.out::println);
     }
 }

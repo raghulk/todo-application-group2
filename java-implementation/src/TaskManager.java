@@ -197,6 +197,17 @@ public class TaskManager {
         }
     }
 
+    public Set<String> getAllCategoriesFromTasks() {
+        lock.readLock().lock();
+        try {
+            return tasks.stream()
+                    .map(Task::getCategory)
+                    .collect(Collectors.toSet());
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
     public List<Task> getTasksByStatus(Task.TaskStatus status) {
         lock.readLock().lock();
         try {
