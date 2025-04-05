@@ -1,87 +1,302 @@
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 public class TaskManager {
     private List<Task> tasks;
+    private Map<String, User> users;
     private int taskCounter = 1;
-    private final String FILE_PATH = "tasks.ser";
+    private final String TASKS_FILE_PATH = "tasks.ser";
+    private final String USERS_FILE_PATH = "users.ser";
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     public TaskManager() {
         this.tasks = loadTasks();
+        this.users = loadUsers();
+        
         if (!tasks.isEmpty()) {
-            taskCounter = tasks.get(tasks.size() - 1).id + 1;
+            // Find the highest task ID to ensure new IDs don't conflict
+            Optional<Integer> maxId = tasks.stream()
+                    .map(Task::getId)
+                    .max(Integer::compareTo);
+            
+            taskCounter = maxId.orElse(0) + 1;
         }
     }
 
-    public synchronized void addTask(String description, String category, String assignedUser) {
-        Task task = new Task(taskCounter++, description, category, assignedUser);
-        tasks.add(task);
-        saveTasks();
+    public User getOrCreateUser(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            throw new IllegalArgumentException("Username cannot be null or empty");
+        }
+        
+        lock.readLock().lock();
+        try {
+            User user = users.get(username);
+            
+            if (user == null) {
+                lock.readLock().unlock();
+                lock.writeLock().lock();
+                
+                try {
+                    // Double-check in case another thread created the user
+                    user = users.get(username);
+                    if (user == null) {
+                        user = new User(username);
+                        users.put(username, user);
+                        saveUsers();
+                    }
+                    return user;
+                } finally {
+                    lock.writeLock().unlock();
+                    lock.readLock().lock();
+                }
+            }
+            
+            return user;
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
-    public synchronized void removeTask(int id) {
-        tasks.removeIf(task -> task.id == id);
-        saveTasks();
+    public boolean addTask(String description, String category, String assignedUser) {
+        if (description == null || description.trim().isEmpty()) {
+            return false;
+        }
+        
+        if (category == null || category.trim().isEmpty()) {
+            category = "General";
+        }
+        
+        User user = getOrCreateUser(assignedUser);
+        
+        lock.writeLock().lock();
+        try {
+            Task task = new Task(taskCounter++, description, category, user.getUsername());
+            tasks.add(task);
+            saveTasks();
+            return true;
+        } catch (Exception e) {
+            return false;
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
-    public synchronized void markTaskCompleted(int id) {
-        for (Task task : tasks) {
-            if (task.id == id) {
+    public boolean removeTask(int id) {
+        lock.writeLock().lock();
+        try {
+            boolean removed = tasks.removeIf(task -> task.getId() == id);
+            if (removed) {
+                saveTasks();
+            }
+            return removed;
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    public boolean markTaskCompleted(int id, String username) {
+        lock.writeLock().lock();
+        try {
+            Optional<Task> taskOpt = tasks.stream()
+                    .filter(task -> task.getId() == id)
+                    .findFirst();
+            
+            if (taskOpt.isPresent()) {
+                Task task = taskOpt.get();
+                
+                // Check if the user is allowed to mark this task as completed
+                if (!task.getAssignedUser().equals(username)) {
+                    return false;
+                }
+                
+                if (task.getStatus() == Task.TaskStatus.COMPLETED) {
+                    return false; // Already completed
+                }
+                
                 task.markCompleted();
-                break;
+                saveTasks();
+                return true;
             }
+            
+            return false;
+        } finally {
+            lock.writeLock().unlock();
         }
-        saveTasks();
+    }
+    
+    public boolean reassignTask(int id, String fromUsername, String toUsername) {
+        if (toUsername == null || toUsername.trim().isEmpty()) {
+            return false;
+        }
+        
+        // First, ensure the target user exists (or create it)
+        User targetUser = getOrCreateUser(toUsername);
+        
+        lock.writeLock().lock();
+        try {
+            // Find the task by ID
+            Optional<Task> taskOpt = tasks.stream()
+                    .filter(task -> task.getId() == id)
+                    .findFirst();
+            
+            if (!taskOpt.isPresent()) {
+                return false; // Task doesn't exist
+            }
+            
+            Task task = taskOpt.get();
+            
+            // Verify that the current user owns this task
+            if (fromUsername != null && !task.getAssignedUser().equals(fromUsername)) {
+                return false; // Not authorized to reassign this task
+            }
+            
+            // Perform the reassignment
+            task.setAssignedUser(targetUser.getUsername());
+            
+            // Save changes
+            saveTasks();
+            return true;
+        } catch (Exception e) {
+            System.err.println("Error reassigning task: " + e.getMessage());
+            return false;
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
-    public synchronized List<Task> getUserTasks(String username) {
-        List<Task> result = new ArrayList<>();
-        for (Task task : tasks) {
-            if (task.assignedUser.equals(username)) {
-                result.add(task);
-            }
+    public List<Task> getUserTasks(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return Collections.emptyList();
         }
-        return result;
+        
+        lock.readLock().lock();
+        try {
+            return tasks.stream()
+                    .filter(task -> task.getAssignedUser().equals(username))
+                    .collect(Collectors.toList());
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
-    public synchronized List<Task> filterTasksByCategory(String category) {
-        List<Task> result = new ArrayList<>();
-        for (Task task : tasks) {
-            if (task.category.equalsIgnoreCase(category)) {
-                result.add(task);
-            }
+    public List<Task> filterTasksByCategory(String category) {
+        if (category == null || category.trim().isEmpty()) {
+            return Collections.emptyList();
         }
-        return result;
+        
+        lock.readLock().lock();
+        try {
+            return tasks.stream()
+                    .filter(task -> task.getCategory().equalsIgnoreCase(category))
+                    .collect(Collectors.toList());
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    public List<Task> getTasksByStatus(Task.TaskStatus status) {
+        lock.readLock().lock();
+        try {
+            return tasks.stream()
+                    .filter(task -> task.getStatus() == status)
+                    .collect(Collectors.toList());
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     private void saveTasks() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_PATH))) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(TASKS_FILE_PATH))) {
             oos.writeObject(tasks);
         } catch (IOException e) {
-            System.out.println("Error saving tasks: " + e.getMessage());
+            System.err.println("Error saving tasks: " + e.getMessage());
         }
     }
 
     private List<Task> loadTasks() {
-        File file = new File(FILE_PATH);
-        if (!file.exists()) return new ArrayList<>();
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILE_PATH))) {
+        File file = new File(TASKS_FILE_PATH);
+        if (!file.exists()) {
+            return new ArrayList<>();
+        }
+        
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(TASKS_FILE_PATH))) {
             return (List<Task>) ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            System.out.println("Error loading tasks: " + e.getMessage());
+            System.err.println("Error loading tasks: " + e.getMessage());
             return new ArrayList<>();
         }
     }
+    
+    private void saveUsers() {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(USERS_FILE_PATH))) {
+            oos.writeObject(users);
+        } catch (IOException e) {
+            System.err.println("Error saving users: " + e.getMessage());
+        }
+    }
 
-    public synchronized List<Task> getAllTasks() {
-        return new ArrayList<>(tasks);
+    @SuppressWarnings("unchecked")
+    private Map<String, User> loadUsers() {
+        File file = new File(USERS_FILE_PATH);
+        if (!file.exists()) {
+            return new HashMap<>();
+        }
+        
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(USERS_FILE_PATH))) {
+            return (Map<String, User>) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            System.err.println("Error loading users: " + e.getMessage());
+            return new HashMap<>();
+        }
+    }
+
+    public List<Task> getAllTasks() {
+        lock.readLock().lock();
+        try {
+            return new ArrayList<>(tasks);
+        } finally {
+            lock.readLock().unlock();
+        }
     }
     
-    public synchronized List<Task> getIncompleteTasks() {
-        return tasks.stream()
-                    .filter(task -> "Pending".equalsIgnoreCase(task.getStatus()))
+    public List<Task> getIncompleteTasks() {
+        lock.readLock().lock();
+        try {
+            return tasks.stream()
+                    .filter(task -> task.getStatus() == Task.TaskStatus.PENDING)
                     .collect(Collectors.toList());
+        } finally {
+            lock.readLock().unlock();
+        }
     }
     
+    public Optional<Task> getTaskById(int id) {
+        lock.readLock().lock();
+        try {
+            return tasks.stream()
+                    .filter(task -> task.getId() == id)
+                    .findFirst();
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+    
+    public List<Task> getIncompleteTasksByUser(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        
+        lock.readLock().lock();
+        try {
+            return tasks.stream()
+                    .filter(task -> task.getAssignedUser().equals(username) && 
+                                   task.getStatus() == Task.TaskStatus.PENDING)
+                    .collect(Collectors.toList());
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
 }
