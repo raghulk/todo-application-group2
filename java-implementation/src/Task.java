@@ -1,14 +1,16 @@
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 public class Task implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
     
     private final int id;
-    private String description;
-    private String category;
+    private final String description;
+    private final String category;
     private TaskStatus status;
     private String assignedUser;
     private final LocalDateTime createdDate;
@@ -60,23 +62,12 @@ public class Task implements Serializable {
     public int getId() {
         return id;
     }
-    
-    public String getDescription() {
-        return description;
-    }
-    
-    public void setDescription(String description) {
-        this.description = Objects.requireNonNull(description, "Description cannot be null");
-    }
+
     
     public String getCategory() {
         return category;
     }
-    
-    public void setCategory(String category) {
-        this.category = Objects.requireNonNull(category, "Category cannot be null");
-    }
-    
+
     public TaskStatus getStatus() {
         return status;
     }
@@ -89,14 +80,7 @@ public class Task implements Serializable {
         this.assignedUser = Objects.requireNonNull(assignedUser, "Assigned user cannot be null");
     }
     
-    public LocalDateTime getCreatedDate() {
-        return createdDate;
-    }
-    
-    public LocalDateTime getCompletedDate() {
-        return completedDate;
-    }
-    
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

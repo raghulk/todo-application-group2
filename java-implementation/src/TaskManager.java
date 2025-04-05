@@ -30,7 +30,7 @@ public class TaskManager {
         if (username == null || username.trim().isEmpty()) {
             throw new IllegalArgumentException("Username cannot be null or empty");
         }
-        
+
         lock.readLock().lock();
         try {
             User user = users.get(username);
@@ -108,7 +108,7 @@ public class TaskManager {
                 Task task = taskOpt.get();
                 
                 // Check if the user is allowed to mark this task as completed
-                if (!task.getAssignedUser().equals(username)) {
+                if (!task.getAssignedUser().equalsIgnoreCase(username)) {
                     return false;
                 }
                 
@@ -149,7 +149,7 @@ public class TaskManager {
             Task task = taskOpt.get();
             
             // Verify that the current user owns this task
-            if (fromUsername != null && !task.getAssignedUser().equals(fromUsername)) {
+            if (fromUsername != null && !task.getAssignedUser().equalsIgnoreCase(fromUsername)) {
                 return false; // Not authorized to reassign this task
             }
             
@@ -175,7 +175,7 @@ public class TaskManager {
         lock.readLock().lock();
         try {
             return tasks.stream()
-                    .filter(task -> task.getAssignedUser().equals(username))
+                    .filter(task -> task.getAssignedUser().equalsIgnoreCase(username))
                     .collect(Collectors.toList());
         } finally {
             lock.readLock().unlock();
@@ -292,7 +292,7 @@ public class TaskManager {
         lock.readLock().lock();
         try {
             return tasks.stream()
-                    .filter(task -> task.getAssignedUser().equals(username) && 
+                    .filter(task -> task.getAssignedUser().equalsIgnoreCase(username) &&
                                    task.getStatus() == Task.TaskStatus.PENDING)
                     .collect(Collectors.toList());
         } finally {

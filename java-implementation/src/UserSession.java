@@ -7,9 +7,6 @@ public class UserSession implements Runnable {
     private final CountDownLatch latch;
     private final boolean simulateTask;
 
-    public UserSession(String username, TaskManager manager) {
-        this(username, manager, null, true);
-    }
 
     public UserSession(String username, TaskManager manager, CountDownLatch latch, boolean simulateTask) {
         if (username == null || username.trim().isEmpty()) {

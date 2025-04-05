@@ -51,9 +51,13 @@ public class CollaborativeTodoApp {
 
     private static void login() {
         String username = ConsoleUtils.readRequiredInput(scanner, "Enter your username: ");
-        currentUsername = username;
-        User user = manager.getOrCreateUser(username);
-        ConsoleUtils.printSuccessMessage("Welcome, " + user.getDisplayName() + "!");
+        currentUsername = capitalizeString(username);
+        User user = manager.getOrCreateUser(currentUsername);
+        ConsoleUtils.printSuccessMessage("Welcome, " + user.getUsername() + "!");
+    }
+
+    private static String capitalizeString(String string) {
+        return string.trim().substring(0,1).toUpperCase() + string.substring(1);
     }
 
     private static void displayMenu() {
@@ -113,7 +117,12 @@ public class CollaborativeTodoApp {
             category = "General";
         }
 
-        boolean success = manager.addTask(description, category, currentUsername);
+        String usernameForTask = ConsoleUtils.readInput(scanner, "Username to assign task to (or leave empty for yourself): ");
+
+        if (usernameForTask.isEmpty()) {
+            usernameForTask = currentUsername;
+        }
+        boolean success = manager.addTask(description, category, capitalizeString(usernameForTask));
 
         if (success) {
             ConsoleUtils.printSuccessMessage("Task added successfully!");
@@ -283,7 +292,7 @@ public class CollaborativeTodoApp {
         String newAssignee = ConsoleUtils.readRequiredInput(scanner, "Enter username to reassign to: ");
 
         // Attempt to reassign the task
-        boolean success = manager.reassignTask(taskId, currentUsername, newAssignee);
+        boolean success = manager.reassignTask(taskId, currentUsername, capitalizeString(newAssignee));
 
         if (success) {
             ConsoleUtils.printSuccessMessage("Task #" + taskId + " successfully reassigned to '" + newAssignee + "'");
