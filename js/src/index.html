@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborative Todo App</title>
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+<!-- Login Screen -->
+<div id="login-form" class="login-container">
+    <div class="card">
+        <h1>Collaborative Todo App</h1>
+        <form>
+            <div class="form-group">
+                <label for="username-input">Username</label>
+                <input type="text" id="username-input" placeholder="Enter your username" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Login</button>
+        </form>
+        <div class="real-time-indicator">
+            <span class="pulse"></span>
+            <span>Real-time collaboration enabled</span>
+        </div>
+    </div>
+</div>
+
+<!-- Main App -->
+<div id="task-app" class="hidden">
+    <nav class="navbar">
+        <div class="app-title">
+            <h1>Collaborative Todo</h1>
+        </div>
+        <div class="user-info">
+            <span id="welcome-message"></span>
+            <button id="logout-button" class="btn btn-secondary">Logout</button>
+        </div>
+    </nav>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <ul class="nav-menu">
+                <li id="my-tasks-nav" class="active"><a href="#"><i class="icon user-icon"></i> My Tasks</a></li>
+                <li id="all-tasks-nav"><a href="#"><i class="icon list-icon"></i> All Tasks</a></li>
+                <li id="filter-tasks-nav"><a href="#"><i class="icon filter-icon"></i> Filter by Category</a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <div class="real-time-indicator">
+                    <span class="pulse"></span>
+                    <span>Real-time syncing</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Add Task Form -->
+            <section class="task-form-container">
+                <h2>Add New Task</h2>
+                <form id="task-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="task-description">Description</label>
+                            <input type="text" id="task-description" placeholder="Task description" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="task-category">Category</label>
+                            <input type="text" id="task-category" placeholder="Category (or leave empty for 'General')">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Add Task</button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            <!-- My Tasks View -->
+            <section id="user-tasks" class="task-section hidden">
+                <header class="section-header">
+                    <h2>My Tasks</h2>
+                    <div id="task-summary" class="summary-text"></div>
+                </header>
+                <div id="user-tasks-list" class="task-list"></div>
+            </section>
+
+            <!-- All Tasks View -->
+            <section id="all-tasks" class="task-section hidden">
+                <header class="section-header">
+                    <h2>All Tasks</h2>
+                </header>
+                <div id="all-tasks-list" class="task-list"></div>
+            </section>
+
+            <!-- Category Filter View -->
+            <section id="category-tasks" class="task-section hidden">
+                <header class="section-header">
+                    <h2>Filter Tasks by Category</h2>
+                    <form id="category-filter" class="inline-form">
+                        <div class="form-group">
+                            <input type="text" id="category-name" placeholder="Enter category name" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Filter</button>
+                    </form>
+                </header>
+                <div class="category-results">
+                    <h3>Tasks in category: <span id="category-name-display"></span></h3>
+                    <div id="category-tasks-list" class="task-list"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<!-- Reassign Task Modal -->
+<div id="task-modal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Reassign Task</h2>
+            <button id="close-modal" class="close-button">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Task: <span id="reassign-task-description"></span></p>
+            <form id="reassign-form">
+                <input type="hidden" id="reassign-task-id">
+                <div class="form-group">
+                    <label for="reassign-username">New Assignee</label>
+                    <input type="text" id="reassign-username" placeholder="Enter username" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Reassign</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="main.js"></script>
+</body>
+</html>
