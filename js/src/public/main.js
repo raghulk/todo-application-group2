@@ -1,6 +1,4 @@
-// ==========================================
 // GLOBAL VARIABLES
-// ==========================================
 let currentUser = null;
 let allUsers = [];
 let allTasks = [];
