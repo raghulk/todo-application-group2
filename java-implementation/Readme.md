@@ -1,68 +1,62 @@
-## Collaborative To-Do List Application
-Overview: Create a command-line or GUI-based to-do list that supports multiple users. Each user can add, remove, or mark tasks as complete, and the application should allow tasks to be categorized and assigned to users.
+# Collaborative Todo Application
 
-Core Requirements:
-Data storage for tasks and user-specific views of tasks.
-Task categorization and status tracking (e.g., completed, pending).
-Support for concurrency, so multiple users can access and edit tasks concurrently.
+![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![JDK](https://img.shields.io/badge/JDK-007396?style=for-the-badge&logo=java&logoColor=white)
 
+## 📋 Prerequisites
 
-Language-specific feature examples:
-## Java: Use classes for users and tasks, demonstrate object oriented principles, and implement concurrency using threads.
-## JavaScript: Use asynchronous operations (like promises or async/await) to simulate concurrent access, and employ JSON for data storage.
+- [Java Development Kit (JDK)](https://www.oracle.com/java/technologies/downloads/)
 
-## Project Deliverables
-Friday: Initial Planning and Design
+## 🚀 Getting Started
 
-Application Design
-Define the overall structure and features for each language implementation.
-Break down the application into manageable components, noting any major differences expected between the languages.
-Create a GitHub repository for your group.
-Task Assignment
-Assign specific roles to each group member, ensuring tasks are balanced and based on strengths and experience.
-Timeline Creation
-Establish a timeline for completing each application component, setting specific milestones for each day.
-Documentation of Design
-Document the application design and initial plans, outlining each feature and any anticipated language-specific challenges.
+Follow these steps to compile and run the Collaborative Todo Application on your local machine.
 
+### Step 1: Verify Java Installation
 
-Saturday: Core Functionality Implementation
+Ensure Java is properly installed on your system:
 
-Core Functionality
-Implement the core features for the application in both languages, ensuring basic functions and complete and operational by the end of the day.
-Use of Language-specific features
-Integrate language-specific features in each implementation such as unique data structures, concurrency mechanisms, or memory management approaches.
-Code Quality
-Write well-organized, readable code with clear comments, following best practices for each language.
-Testing and Debugging
-Conduct basic testing to verify that the application works as expected in both languages, identifying and resolving any significant bugs.
+```bash
+java -version
+```
 
+You should see output displaying your Java version. If not, please install Java before proceeding.
 
-Sunday: Final Features, Documentation, and Presentation
+### Step 2: Navigate to Source Directory
 
-Application Completion
-Finish any remaining features and ensure the application is fully functional in both languages.
-Documentation and Comparison Report
-Complete a 2-3 page comparison report covering the differences in implementation between the two languages. Discuss challenges, unique features, syntax differences, and overall language experience. Reflect on the language differences including ease of use, performance, and how each language's characteristics influenced your approach.
-Report must follow APA version 7 guidelines.
-Presentation
-Prepare and deliver a 5-10 minuted presentation showing the application in both languages. Include a walkthrough of main features and a comparison of the two implemenations.
+Go to the application's source directory:
 
+```bash
+cd java-implementation/src
+```
 
-## Final Submission
+### Step 3: Compile the Application
 
+Compile the main Java program using the Java compiler:
 
-Each group must deliver the following:
+```bash
+javac CollaborativeTodoApp.java
+```
 
-1. Implementation in Two Languages:
-Both applications should perform the same core functions, tailored to the assigned languages’ features.
-Code must demonstrate language-specific features as specified.
-Code must be stored in a collaborative GitHub repository. Add the link to your report.
-2. Report (2-3) pages:
-Explain the differences in implementing the application in the two languages, covering at least three language-specific features.
-Describe how each language’s characteristics affected the design, performance, and readability of the application.
-Include code snippets highlighting key differences.
-3. Demonstration (5-7 minutes):
-A live demonstration showing both implementations in action.
-Include a brief overview of the application and walk through the main features in each language.
-Submit the Powerpoint presentation
+This will generate the necessary `.class` files for running the application.
+
+### Step 4: Run the Application
+
+Execute the compiled Java application:
+
+```bash
+java CollaborativeTodoApp
+```
+
+## 💻 IDE Alternative
+
+If you're using a modern IDE (like IntelliJ IDEA, Eclipse, or NetBeans):
+
+1. Open the project in your IDE
+2. Locate the `CollaborativeTodoApp.java` file
+3. Run the application directly by clicking the play icon ▶️ or using the run shortcut
+
+## 🛠️ Troubleshooting
+
+- If you encounter `'javac' is not recognized` or `'java' is not recognized` errors, ensure Java is added to your system PATH
+- For compilation errors, verify you're using a compatible Java version
+- If the program doesn't start, check for any console error messages
