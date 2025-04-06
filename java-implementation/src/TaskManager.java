@@ -5,8 +5,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 public class TaskManager {
-    private List<Task> tasks;
-    private Map<String, User> users;
+    private final List<Task> tasks;
+    private final Map<String, User> users;
     private int taskCounter = 1;
     private final String TASKS_FILE_PATH = "java-implementation/src/data/tasks.ser";
     private final String USERS_FILE_PATH = "java-implementation/src/data/users.ser";
@@ -142,7 +142,7 @@ public class TaskManager {
                     .filter(task -> task.getId() == id)
                     .findFirst();
             
-            if (!taskOpt.isPresent()) {
+            if (taskOpt.isEmpty()) {
                 return false; // Task doesn't exist
             }
             

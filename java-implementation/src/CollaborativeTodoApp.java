@@ -285,7 +285,7 @@ public class CollaborativeTodoApp {
                 .filter(task -> task.getId() == taskId)
                 .findFirst();
 
-        if (!taskToReassign.isPresent()) {
+        if (taskToReassign.isEmpty()) {
             ConsoleUtils.printErrorMessage("Task #" + taskId + " is not assigned to you or does not exist.");
             return;
         }
