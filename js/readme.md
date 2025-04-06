@@ -65,5 +65,3 @@ Open your web browser and go to:
 - If you encounter any installation errors, ensure you have the latest version of Node.js
 - Check your firewall settings if you cannot access the application in your browser
 - For dependency issues, try running `npm cache clean --force` before reinstalling
-
-Happy coding! 🎉

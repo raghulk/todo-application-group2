@@ -26,7 +26,7 @@ You should see output displaying your Java version. If not, please install Java 
 Go to the application's source directory:
 
 ```bash
-cd java-implementation/src
+cd java/src
 ```
 
 ### Step 3: Compile the Application
