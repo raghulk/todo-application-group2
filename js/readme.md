@@ -66,10 +66,4 @@ Open your web browser and go to:
 - Check your firewall settings if you cannot access the application in your browser
 - For dependency issues, try running `npm cache clean --force` before reinstalling
 
-## 📝 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
 Happy coding! 🎉
