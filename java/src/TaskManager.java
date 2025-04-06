@@ -8,8 +8,8 @@ public class TaskManager {
     private final List<Task> tasks;
     private final Map<String, User> users;
     private int taskCounter = 1;
-    private final String TASKS_FILE_PATH = "java-implementation/src/data/tasks.ser";
-    private final String USERS_FILE_PATH = "java-implementation/src/data/users.ser";
+    private final String TASKS_FILE_PATH = "java/src/data/tasks.ser";
+    private final String USERS_FILE_PATH = "java/src/data/users.ser";
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     public TaskManager() {
